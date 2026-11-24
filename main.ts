@@ -12,18 +12,24 @@ const entry = "A $4-a-month butler that reads an AI agent's 40,000 unread emails
 // Gate: one sentence, 1-200 characters, not only whitespace (mirrors the
 // competition gate). Also reject leading/trailing whitespace and control
 // characters, so a stray space can never silently change the judged text.
-if (
-  entry.length < 1 ||
-  entry.length > 200 ||
-  !/\S/.test(entry) ||
-  entry !== entry.trim() ||
-  /[\u0000-\u001f\u007f]/.test(entry)
-) {
-  throw new Error("entry must be 1-200 non-whitespace characters");
+// Kept as its own function so the gate can be re-checked and extended
+// without touching the entry itself.
+function validateEntry(entry: string): void {
+  if (
+    entry.length < 1 ||
+    entry.length > 200 ||
+    !/\S/.test(entry) ||
+    entry !== entry.trim() ||
+    /[\u0000-\u001f\u007f]/.test(entry)
+  ) {
+    throw new Error("entry must be 1-200 non-whitespace characters");
+  }
+  if ((entry.match(/[.!?]/g) ?? []).length !== 1 || !/[.!?]$/.test(entry)) {
+    throw new Error("entry must be exactly one sentence");
+  }
 }
-if ((entry.match(/[.!?]/g) ?? []).length !== 1 || !/[.!?]$/.test(entry)) {
-  throw new Error("entry must be exactly one sentence");
-}
+
+validateEntry(entry);
 
 const out = process.env.ENTRY_OUTPUT ?? "/output/entry.txt";
 mkdirSync(dirname(out), { recursive: true });
